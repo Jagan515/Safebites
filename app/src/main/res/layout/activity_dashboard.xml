@@ -1,0 +1,122 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FAFAFA"
+    tools:context=".RecipeRewriteActivity">
+
+    <LinearLayout
+        android:id="@+id/layoutContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:gravity="center_horizontal"
+        tools:ignore="HardcodedText">
+
+        <!-- Header Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp">
+
+            <ImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/profileround"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"/>
+
+            <TextView
+                android:id="@+id/tvHome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+
+        <!-- Recipe Input -->
+        <TextView
+            android:id="@+id/tvEnterRecipe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter Your Recipe or Name of the Dish"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <EditText
+            android:id="@+id/etInputRecipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Paste your Recipe/Dish"
+            android:textSize="16sp"
+            android:inputType="textMultiLine"
+            android:background="@android:drawable/edit_text"
+            android:minHeight="80dp"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Upload Button -->
+        <Button
+            android:id="@+id/btnUploadFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload File"
+            android:layout_marginTop="12dp"
+            android:padding="10dp"
+            android:background="@drawable/rounded_corner"
+            android:textColor="@color/white"/>
+
+        <!-- Allergy Input -->
+        <TextView
+            android:id="@+id/tvDietaryPref"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Dietary Preferences"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"/>
+
+        <EditText
+            android:id="@+id/etAllergies"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter the foods which you are allergic to.."
+            android:textSize="16sp"
+            android:background="@android:drawable/edit_text"
+            android:minHeight="80dp"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:layout_marginTop="20dp"
+            android:padding="12dp"
+            android:background="@drawable/rounded_corner"
+            android:textColor="@color/white"
+            android:textStyle="bold"/>
+
+        <!-- Response Box -->
+        <TextView
+            android:id="@+id/tvResponse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:layout_marginTop="24dp"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:background="#EEEEEE"
+            android:padding="16dp"
+            android:visibility="gone"/>
+    </LinearLayout>
+</ScrollView>

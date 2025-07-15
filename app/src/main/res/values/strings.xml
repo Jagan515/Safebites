@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Safebite</string>
+    <string name="splash_text">Safebite</string> <!-- Only if needed -->
+    <string name="logo_desc">Safebite logo</string>
+    <string name="logout">Log Out</string>
+    <string name="savedreceipe">Saved receipe</string>
+    <string name="Vegan">Vegan</string>
+    <string name="MyPreferences">My Preferences</string>
+    <string name="user">User</string>
+    <string name="mail">Gmail</string>
+    <string name="sign_up_string">Sing Up</string>
+    <string name="btnSave">Save</string>
+
+
+        <string name="enter_both_fields">Please enter both recipe and allergies</string>
+        <string name="error_api_failed">API Call Failed: %1$s</string>
+        <string name="unexpected_code">Unexpected code: %1$s</string>
+        <string name="parsing_error">Parsing error: %1$s</string>
+        <string name="error_creating_request">Error creating request: %1$s</string>
+        <string name="prompt_template">
+        Rewrite the following recipe with allergy-safe alternatives and explain each replacement.
+        Allergens/Dietary Restrictions: %1$s
+
+        Recipe:
+        %2$s
+    </string>
+
+</resources>
