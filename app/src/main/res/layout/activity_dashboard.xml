@@ -62,16 +62,7 @@
             android:padding="12dp"
             android:layout_marginTop="8dp"/>
 
-        <!-- Upload Button -->
-        <Button
-            android:id="@+id/btnUploadFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Upload File"
-            android:layout_marginTop="12dp"
-            android:padding="10dp"
-            android:background="@drawable/rounded_corner"
-            android:textColor="@color/white"/>
+
 
         <!-- Allergy Input -->
         <TextView
@@ -105,6 +96,15 @@
             android:background="@drawable/rounded_corner"
             android:textColor="@color/white"
             android:textStyle="bold"/>
+        <!-- Loading Spinner -->
+        <ProgressBar
+            android:id="@+id/loadingBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="24dp"/>
 
         <!-- Response Box -->
         <TextView

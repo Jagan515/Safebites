@@ -59,8 +59,10 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.profileImage);
 
         // Set user name & email
-        userName.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "No Name");
+        userName.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "SafeBites");
         userEmail.setText(currentUser.getEmail());
+        profileImage.setImageResource(R.drawable.logo); // assuming logo.png is in drawable
+
 
         // Load user recipes from Firestore
         loadUserRecipes(currentUser.getUid());

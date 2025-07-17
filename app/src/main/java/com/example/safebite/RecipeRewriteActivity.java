@@ -1,13 +1,11 @@
 package com.example.safebite;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -17,10 +15,7 @@ import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,34 +23,34 @@ import java.util.Map;
 public class RecipeRewriteActivity extends AppCompatActivity {
 
     private EditText etInputRecipe, etAllergies;
-    private Button btnUploadFile, btnSubmit;
+    private Button btnSubmit;
     private ImageButton btnProfile;
     private TextView tvResponse;
+    private ProgressBar loadingBar;
 
-    private static final int FILE_SELECT_CODE = 0;
     private static final String TAG = "SafeBite";
 
     private static final String OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-    private static final String MODEL_ID = "cognitivecomputations/dolphin-mistral-24b-venice-edition:free";
+    private static final String MODEL_ID = "moonshotai/kimi-k2:free";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dashboard); // Ensure layout name matches your XML
+        setContentView(R.layout.activity_dashboard); // Make sure your XML layout is named activity_dashboard
 
-        // Init views
+        // Initialize views
         etInputRecipe = findViewById(R.id.etInputRecipe);
         etAllergies = findViewById(R.id.etAllergies);
-        btnUploadFile = findViewById(R.id.btnUploadFile);
         btnSubmit = findViewById(R.id.btnSubmit);
         btnProfile = findViewById(R.id.btnProfile);
         tvResponse = findViewById(R.id.tvResponse);
+        loadingBar = findViewById(R.id.loadingBar);
 
+        // Profile button navigation
         btnProfile.setOnClickListener(v ->
                 startActivity(new Intent(RecipeRewriteActivity.this, ProfileActivity.class)));
 
-        btnUploadFile.setOnClickListener(view -> showFileChooser());
-
+        // Submit button logic
         btnSubmit.setOnClickListener(view -> {
             String recipe = etInputRecipe.getText().toString().trim();
             String allergens = etAllergies.getText().toString().trim();
@@ -63,45 +58,10 @@ public class RecipeRewriteActivity extends AppCompatActivity {
             if (recipe.isEmpty() || allergens.isEmpty()) {
                 Toast.makeText(this, "Please fill both recipe and preferences", Toast.LENGTH_SHORT).show();
             } else {
+                loadingBar.setVisibility(View.VISIBLE);
                 callOpenRouterAPI(recipe, allergens);
             }
         });
-    }
-
-    private void showFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("text/plain");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        try {
-            startActivityForResult(Intent.createChooser(intent, "Select a file"), FILE_SELECT_CODE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(this, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_SELECT_CODE && resultCode == RESULT_OK && data != null) {
-            Uri uri = data.getData();
-            StringBuilder content = new StringBuilder();
-
-            try (InputStream inputStream = getContentResolver().openInputStream(uri);
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-
-                etInputRecipe.setText(content.toString().trim());
-                Toast.makeText(this, "File loaded into recipe field", Toast.LENGTH_SHORT).show();
-
-            } catch (IOException e) {
-                Toast.makeText(this, "Failed to read file", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "File read error", e);
-            }
-        }
     }
 
     private void callOpenRouterAPI(String recipe, String allergens) {
@@ -109,9 +69,25 @@ public class RecipeRewriteActivity extends AppCompatActivity {
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .build();
 
-        String prompt = "Rewrite the following recipe with allergy-safe alternatives and explain each replacement.\n"
-                + "Allergens/Dietary Restrictions: " + allergens + "\n\n"
-                + "Recipe:\n" + recipe;
+        String prompt =
+                "You are a helpful chef who rewrites recipes to make them allergy-safe. " +
+                        "Take the following recipe and replace any allergens with safe alternatives. " +
+                        "Clearly explain each replacement and why it is used.\n\n" +
+                        "IMPORTANT: " +
+                        "1. Keep the response in clean plain text without any special characters like *, _, or markdown formatting. " +
+                        "2. Do NOT add extra symbols or emojis. " +
+                        "3. Use this exact format:\n\n" +
+                        "Title: [Allergy-Safe Recipe Name]\n\n" +
+                        "Ingredients:\n" +
+                        "- List each ingredient on a new line.\n\n" +
+                        "Replacements:\n" +
+                        "- Original ingredient → Replacement (short reason)\n\n" +
+                        "Instructions:\n" +
+                        "Step 1: ...\n" +
+                        "Step 2: ...\n\n" +
+                        "Allergens/Dietary Restrictions: " + allergens + "\n\n" +
+                        "Original Recipe:\n" + recipe;
+
 
         try {
             JSONObject requestBodyJson = new JSONObject();
@@ -133,7 +109,7 @@ public class RecipeRewriteActivity extends AppCompatActivity {
             Request request = new Request.Builder()
                     .url(OPENROUTER_URL)
                     .post(requestBody)
-                    .addHeader("Authorization", "Bearer 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") // Secure API key
+                    .addHeader("Authorization", "Bearer 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") // ⚠️ Replace with secure storage before release
                     .addHeader("Content-Type", "application/json")
                     .addHeader("HTTP-Referer", "https://your-app.com")
                     .addHeader("X-Title", "SafeBite")
@@ -143,18 +119,20 @@ public class RecipeRewriteActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     Log.e(TAG, "API call failed", e);
-                    runOnUiThread(() ->
-                            Toast.makeText(RecipeRewriteActivity.this, "API Failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                    );
+                    runOnUiThread(() -> {
+                        loadingBar.setVisibility(View.GONE);
+                        Toast.makeText(RecipeRewriteActivity.this, "API Failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     if (!response.isSuccessful()) {
                         Log.e(TAG, "API error: " + response.code());
-                        runOnUiThread(() ->
-                                Toast.makeText(RecipeRewriteActivity.this, "API error: " + response.message(), Toast.LENGTH_LONG).show()
-                        );
+                        runOnUiThread(() -> {
+                            loadingBar.setVisibility(View.GONE);
+                            Toast.makeText(RecipeRewriteActivity.this, "API error: " + response.message(), Toast.LENGTH_LONG).show();
+                        });
                         return;
                     }
 
@@ -167,6 +145,7 @@ public class RecipeRewriteActivity extends AppCompatActivity {
                         String text = message.getString("content");
 
                         runOnUiThread(() -> {
+                            loadingBar.setVisibility(View.GONE);
                             tvResponse.setText(text.trim());
                             tvResponse.setVisibility(View.VISIBLE);
                             Toast.makeText(RecipeRewriteActivity.this, "Recipe Rewritten!", Toast.LENGTH_SHORT).show();
@@ -192,15 +171,17 @@ public class RecipeRewriteActivity extends AppCompatActivity {
 
                     } catch (Exception e) {
                         Log.e(TAG, "JSON parse error", e);
-                        runOnUiThread(() ->
-                                Toast.makeText(RecipeRewriteActivity.this, "Parse Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                        );
+                        runOnUiThread(() -> {
+                            loadingBar.setVisibility(View.GONE);
+                            Toast.makeText(RecipeRewriteActivity.this, "Parse Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
                     }
                 }
             });
 
         } catch (Exception e) {
             Log.e(TAG, "Request error", e);
+            loadingBar.setVisibility(View.GONE);
             Toast.makeText(this, "Request Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
