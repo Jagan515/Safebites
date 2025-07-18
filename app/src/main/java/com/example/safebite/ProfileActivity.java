@@ -1,26 +1,37 @@
 package com.example.safebite;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.MenuItem;
-import android.widget.Button;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.List;
+
 public class ProfileActivity extends AppCompatActivity {
 
-    Button btnLogout;
+    MaterialButton btnLogout;
     RecyclerView recipeRecyclerView;
     TextView textAllRecipes, userName, userEmail;
     ShapeableImageView profileImage;
@@ -33,7 +44,6 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Enable ActionBar with back arrow
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle("My Profile");
@@ -43,31 +53,28 @@ public class ProfileActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
 
-        // Redirect to SignIn if not logged in
         if (currentUser == null) {
             startActivity(new Intent(ProfileActivity.this, SignInActivity.class));
             finish();
             return;
         }
 
-        // Initialize views
         recipeRecyclerView = findViewById(R.id.recipeRecyclerView);
         btnLogout = findViewById(R.id.logoutBtn);
         textAllRecipes = findViewById(R.id.textAllRecipes);
         userName = findViewById(R.id.userName);
         userEmail = findViewById(R.id.userEmail);
         profileImage = findViewById(R.id.profileImage);
+        profileImage.setImageResource(R.drawable.logo);
 
-        // Set user name & email
-        userName.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "SafeBites");
+
+        recipeRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        userName.setText(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "Safebites");
         userEmail.setText(currentUser.getEmail());
-        profileImage.setImageResource(R.drawable.logo); // assuming logo.png is in drawable
 
-
-        // Load user recipes from Firestore
         loadUserRecipes(currentUser.getUid());
 
-        // Logout functionality
         btnLogout.setOnClickListener(v -> {
             mAuth.signOut();
             Toast.makeText(ProfileActivity.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
@@ -86,28 +93,91 @@ public class ProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        StringBuilder allRecipes = new StringBuilder();
-                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                            String normal = doc.getString("normalRecipe");
-                            String ing = doc.getString("ingredients");
-                            String out = doc.getString("outputRecipe");
+                        List<DocumentSnapshot> docs = queryDocumentSnapshots.getDocuments();
 
-                            allRecipes.append("Normal: ").append(normal).append("\n")
-                                    .append("Ingredients: ").append(ing).append("\n")
-                                    .append("Output: ").append(out).append("\n\n");
-                        }
+                        RecyclerView.Adapter<RecyclerView.ViewHolder> adapter = new RecyclerView.Adapter<>() {
+                            @Override
+                            public int getItemCount() {
+                                return docs.size();
+                            }
 
-                        textAllRecipes.setText(allRecipes.toString());
+                            @Override
+                            public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                                MaterialCardView card = new MaterialCardView(ProfileActivity.this);
+                                card.setLayoutParams(new RecyclerView.LayoutParams(
+                                        ViewGroup.LayoutParams.MATCH_PARENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT
+                                ));
+                                card.setCardElevation(6f);
+                                card.setRadius(20f);
+                                card.setUseCompatPadding(true);
+                                card.setContentPadding(24, 24, 24, 24);
+                                card.setClickable(true);
+
+                                LinearLayout layout = new LinearLayout(ProfileActivity.this);
+                                layout.setOrientation(LinearLayout.VERTICAL);
+
+                                TextView title = new TextView(ProfileActivity.this);
+                                title.setTextSize(18f);
+                                title.setTypeface(null, Typeface.BOLD);
+                                layout.addView(title);
+
+                                TextView shortDesc = new TextView(ProfileActivity.this);
+                                shortDesc.setMaxLines(2);
+                                shortDesc.setEllipsize(TextUtils.TruncateAt.END);
+                                layout.addView(shortDesc);
+
+                                TextView readMore = new TextView(ProfileActivity.this);
+                                readMore.setText("Read More");
+                                readMore.setTextColor(Color.parseColor("#6200EE"));
+                                readMore.setPadding(0, 16, 0, 0);
+                                layout.addView(readMore);
+
+                                card.addView(layout);
+
+                                return new RecyclerView.ViewHolder(card) {
+                                    TextView tvTitle = title;
+                                    TextView tvShortDesc = shortDesc;
+                                    TextView tvReadMore = readMore;
+                                };
+                            }
+
+                            @Override
+                            public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+                                DocumentSnapshot doc = docs.get(position);
+                                String normal = doc.getString("normalRecipe");
+                                String ing = doc.getString("ingredients");
+                                String out = doc.getString("outputRecipe");
+
+                                ViewGroup layout = (ViewGroup) ((MaterialCardView) holder.itemView).getChildAt(0);
+                                TextView tvTitle = (TextView) layout.getChildAt(0);
+                                TextView tvShort = (TextView) layout.getChildAt(1);
+                                TextView tvRead = (TextView) layout.getChildAt(2);
+
+                                tvTitle.setText(normal);
+                                tvShort.setText(out);
+
+                                tvRead.setOnClickListener(v -> new AlertDialog.Builder(ProfileActivity.this)
+                                        .setTitle(normal)
+                                        .setMessage("Ingredients:\n" + ing + "\n\nOutput:\n" + out)
+                                        .setPositiveButton("Close", null)
+                                        .show());
+                            }
+                        };
+
+                        recipeRecyclerView.setVisibility(View.VISIBLE);
+                        textAllRecipes.setVisibility(View.GONE);
+                        recipeRecyclerView.setAdapter(adapter);
                     } else {
+                        recipeRecyclerView.setVisibility(View.GONE);
                         textAllRecipes.setText("No recipes found.");
+                        textAllRecipes.setVisibility(View.VISIBLE);
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error loading recipes", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Error loading recipes", Toast.LENGTH_SHORT).show());
     }
 
-    // Handle back arrow to go to DashboardActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

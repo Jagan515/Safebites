@@ -109,7 +109,7 @@ public class RecipeRewriteActivity extends AppCompatActivity {
             Request request = new Request.Builder()
                     .url(OPENROUTER_URL)
                     .post(requestBody)
-                    .addHeader("Authorization", "Bearer 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") // ⚠️ Replace with secure storage before release
+                    .addHeader("Authorization", "Bearer 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") // ⚠️ Replace with secure storage before release
                     .addHeader("Content-Type", "application/json")
                     .addHeader("HTTP-Referer", "https://your-app.com")
                     .addHeader("X-Title", "SafeBite")
